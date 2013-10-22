@@ -27,7 +27,7 @@ def GetDetails(packageName):
 	permissions = []
 	for i in range(len(app['details']['appDetails']['permission'])): permissions.append(app['details']['appDetails']['permission'][i])
 
-	appData = dict(title=app['title'], author=app['creator'], description=app['descriptionHtml'], cost=app['offer'][0]['formattedAmount'], icon=app['image'][0]['imageUrl'], category=str(app['details']['appDetails']['appCategory'][0]), permissions=permissions, numDownloads=app['details']['appDetails']['numDownloads'], playRating="%.2f" % app['aggregateRating']['starRating'], url=app['shareUrl'])
+	appData = dict(title=app['title'], author=app['creator'], description=app['descriptionHtml'], cost=app['offer'][0]['formattedAmount'], icon=app['image'][0]['imageUrl'], category=str(app['details']['appDetails']['appCategory'][0]), permissions=permissions, numDownloads=app['details']['appDetails']['numDownloads'], playRating="%.2f" % app['aggregateRating']['starRating'], url=app['shareUrl'], packageName=app['docid'])
 
 	return dict(method="GetDetails", id=1, searchString=packageName, GooglePlayData=appData)
 
