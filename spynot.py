@@ -18,6 +18,10 @@ def GetDetails(packageName):
 	except:
 		print "Error: something went wrong."
 		sys.exit(1)
+	
+	if "docV2" not in message:
+		return dict(method="GetDetails", id=1, searchString=packageName, GooglePlayData=None)
+
 	app = message['docV2']
 
 	permissions = []
@@ -32,15 +36,22 @@ def SearchApp(searchString):
 	api.login(GOOGLE_LOGIN, GOOGLE_PASSWORD, AUTH_TOKEN)
 
 	try:
-		message = api.search(searchString, None, None)
+		message = api.toDict(api.search(searchString, None, None))
 	except:
 		print "Error: something went wrong. Maybe the nb_res you specified was too big?"
 		sys.exit(1)
 
-	doc = message.doc[0]
+	if "doc" not in message:
+		return dict(method="SearchApp", id=1, searchString=searchString, results=None)
+
+	doc = message["doc"][0]
 	appList = []
-	for c in doc.child:
-		appList.append(dict(title=c.title, author=c.creator, superDeveloper=len(c.annotations.badgeForCreator), playRating="%.2f" % c.aggregateRating.starRating, icon=c.image[0].imageUrl, packagename=c.docid))
+	for c in doc["child"]:
+		if "badgeForCreator" in c["annotations"]:
+			badge = True
+		else:
+			badge = False
+		appList.append(dict(title=c["title"], author=c["creator"], superDeveloper=badge, playRating="%.2f" % c["aggregateRating"]["starRating"], icon=c["image"][0]["imageUrl"], packageName=c["docid"]))
 
 	return dict(method="SearchApp", id=1, searchString=searchString, results=appList)
 
