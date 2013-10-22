@@ -7,11 +7,17 @@ class SpyNot():
 
 	@cherrypy.expose
 	def index(self):
-		return "SpyNot, playa."
+		return "YOU SHALL NOT PASS!"
 
 	@cherrypy.expose
 	def api(self, json=None):
 		cherrypy.response.headers['Content-Type'] = 'application/json'
-		return spynot.api(json)
+		if json is None and cherrypy.request.method == "POST":
+			body = cherrypy.request.body.read()
+			print body
+			return spynot.api(body)
+		else:
+			print json
+			return spynot.api(json)
 
 cherrypy.quickstart(SpyNot())
