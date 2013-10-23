@@ -25,18 +25,19 @@ def GetDetails(packageName):
 	app = message['docV2']
 
 	permissions = []
-	for i in range(len(app['details']['appDetails']['permission'])): permissions.append(app['details']['appDetails']['permission'][i])
+	if "permission" in app["details"]["appDetails"]:
+		for i in range(len(app['details']['appDetails']['permission'])): permissions.append(app['details']['appDetails']['permission'][i])
 
 	appData = dict(title=app['title'], author=app['creator'], description=app['descriptionHtml'], cost=app['offer'][0]['formattedAmount'], icon=app['image'][0]['imageUrl'], category=str(app['details']['appDetails']['appCategory'][0]), permissions=permissions, numDownloads=app['details']['appDetails']['numDownloads'], playRating="%.2f" % app['aggregateRating']['starRating'], url=app['shareUrl'], packageName=app['docid'])
 
 	return dict(method="GetDetails", id=1, searchString=packageName, GooglePlayData=appData)
 
-def GetAppPermissionsByCategory(category, subcategory):
+def GetAppPermissionsByCategory(category, subcategory, numResults=20):
 	api = GooglePlayAPI(ANDROID_ID)
 	api.login(GOOGLE_LOGIN, GOOGLE_PASSWORD, AUTH_TOKEN)
 
 	try:
-		message = api.toDict(api.list(category, subcategory, None, None))
+		message = api.toDict(api.list(category, subcategory, str(numResults), None))
 	except:
 		print "Error: something went wrong."
 		sys.exit(1)
@@ -47,12 +48,21 @@ def GetAppPermissionsByCategory(category, subcategory):
 	doc = message["doc"][0]
 	appList = []
 	for c in doc["child"]:
-		if "badgeForCreator" in c["annotations"]:
-			badge = True
-		else:
-			badge = False
-		permissions = GetDetails(c["docid"])["GooglePlayData"]["permissions"]
-		appList.append(dict(packageName=c["docid"], permissions=permissions))
+		appList.append(c["docid"])
+
+	try:
+		message = api.toDict(api.bulkDetails(appList))
+	except:
+		print "Error: something went wrong."
+		return
+	appList = []
+	for i in range(len(message["entry"])):
+		app = message["entry"][i]["doc"]
+		permissions = []
+		print app["docid"]
+		if "permission" in app["details"]["appDetails"]:
+			for i in range(len(app['details']['appDetails']['permission'])): permissions.append(app['details']['appDetails']['permission'][i])
+		appList.append(dict(packageName=app["docid"], permissions=permissions))
 
 	return dict(method="GetAppPermissionsByCategory", id=1, category=category, subcategory=subcategory, results=appList)
 
@@ -97,7 +107,10 @@ def api(json=None):
 			return libjson.dumps(dict(method=json["method"], id=json["id"], response="bad", reason="Missing 'searchString'"), indent=2)
 	elif json["method"] == "GetAppPermissionsByCategory":
 		if "category" in json and "subcategory" in json:
-			return libjson.dumps(GetAppPermissionsByCategory(json["category"], json["subcategory"]), indent=2)
+			if "numResults" in json:
+				return libjson.dumps(GetAppPermissionsByCategory(json["category"], json["subcategory"], json["numResults"]), indent=2)
+			else:
+				return libjson.dumps(GetAppPermissionsByCategory(json["category"], json["subcategory"]), indent=2)
 		else:
 			return libjson.dumps(dict(method=json["method"], id=json["id"], response="bad", reason="Missing 'category' | 'subcategory'"), indent=2)
 	else:
