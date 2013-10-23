@@ -31,6 +31,31 @@ def GetDetails(packageName):
 
 	return dict(method="GetDetails", id=1, searchString=packageName, GooglePlayData=appData)
 
+def GetAppPermissionsByCategory(category, subcategory):
+	api = GooglePlayAPI(ANDROID_ID)
+	api.login(GOOGLE_LOGIN, GOOGLE_PASSWORD, AUTH_TOKEN)
+
+	try:
+		message = api.toDict(api.list(category, subcategory, None, None))
+	except:
+		print "Error: something went wrong."
+		sys.exit(1)
+	
+	if "doc" not in message:
+		return dict(method="GetAppPermissionsByCategory", id=1, category=category, subcategory=subcategory, results=None)
+
+	doc = message["doc"][0]
+	appList = []
+	for c in doc["child"]:
+		if "badgeForCreator" in c["annotations"]:
+			badge = True
+		else:
+			badge = False
+		permissions = GetDetails(c["docid"])["GooglePlayData"]["permissions"]
+		appList.append(dict(packageName=c["docid"], permissions=permissions))
+
+	return dict(method="GetAppPermissionsByCategory", id=1, category=category, subcategory=subcategory, results=appList)
+
 def SearchApp(searchString):
 	api = GooglePlayAPI(ANDROID_ID)
 	api.login(GOOGLE_LOGIN, GOOGLE_PASSWORD, AUTH_TOKEN)
@@ -70,5 +95,10 @@ def api(json=None):
 			return libjson.dumps(SearchApp(json["searchString"]), indent=2)
 		else:
 			return libjson.dumps(dict(method=json["method"], id=json["id"], response="bad", reason="Missing 'searchString'"), indent=2)
+	elif json["method"] == "GetAppPermissionsByCategory":
+		if "category" in json and "subcategory" in json:
+			return libjson.dumps(GetAppPermissionsByCategory(json["category"], json["subcategory"]), indent=2)
+		else:
+			return libjson.dumps(dict(method=json["method"], id=json["id"], response="bad", reason="Missing 'category' | 'subcategory'"), indent=2)
 	else:
 			return libjson.dumps(dict(method="NoValidMethod", id=json["id"], response="bad", reason="Method name not recognized."), indent=2)

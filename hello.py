@@ -19,5 +19,5 @@ class SpyNot():
 		else:
 			print json
 			return spynot.api(json)
-
+cherrypy.config.update({'server.socket_host': '127.0.0.1', 'server.socket_port': 9999, })
 cherrypy.quickstart(SpyNot())
