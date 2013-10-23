@@ -59,7 +59,6 @@ def GetAppPermissionsByCategory(category, subcategory, numResults=20):
 	for i in range(len(message["entry"])):
 		app = message["entry"][i]["doc"]
 		permissions = []
-		print app["docid"]
 		if "permission" in app["details"]["appDetails"]:
 			for i in range(len(app['details']['appDetails']['permission'])): permissions.append(app['details']['appDetails']['permission'][i])
 		appList.append(dict(packageName=app["docid"], permissions=permissions))
