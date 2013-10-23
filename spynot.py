@@ -17,7 +17,7 @@ def GetDetails(packageName):
 		message = api.toDict(api.details(packageName))
 	except:
 		print "Error: something went wrong."
-		sys.exit(1)
+		return
 	
 	if "docV2" not in message:
 		return dict(method="GetDetails", id=1, searchString=packageName, GooglePlayData=None)
@@ -40,7 +40,7 @@ def GetAppPermissionsByCategory(category, subcategory, numResults=20):
 		message = api.toDict(api.list(category, subcategory, str(numResults), None))
 	except:
 		print "Error: something went wrong."
-		sys.exit(1)
+		return
 	
 	if "doc" not in message:
 		return dict(method="GetAppPermissionsByCategory", id=1, category=category, subcategory=subcategory, results=None)
@@ -74,7 +74,7 @@ def SearchApp(searchString):
 		message = api.toDict(api.search(searchString, None, None))
 	except:
 		print "Error: something went wrong. Maybe the nb_res you specified was too big?"
-		sys.exit(1)
+		return
 
 	if "doc" not in message:
 		return dict(method="SearchApp", id=1, searchString=searchString, results=None)
