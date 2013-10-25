@@ -3,7 +3,6 @@
 # Do not remove
 GOOGLE_LOGIN = GOOGLE_PASSWORD = AUTH_TOKEN = None
 
-import sys
 
 from config import *
 from googleplay import GooglePlayAPI
@@ -20,7 +19,7 @@ def GetDetails(packageName):
 		return
 	
 	if "docV2" not in message:
-		return dict(method="GetDetails", id=1, searchString=packageName, GooglePlayData=None)
+		return dict(method="GetDetails", id=1, searchString=packageName, GooglePlayData=None, response="ok")
 
 	app = message['docV2']
 
@@ -28,13 +27,29 @@ def GetDetails(packageName):
 	if "permission" in app["details"]["appDetails"]:
 		for i in range(len(app['details']['appDetails']['permission'])): permissions.append(app['details']['appDetails']['permission'][i])
 
-	appData = dict(title=app['title'], author=app['creator'], description=app['descriptionHtml'], cost=app['offer'][0]['formattedAmount'], icon=app['image'][0]['imageUrl'], category=str(app['details']['appDetails']['appCategory'][0]), permissions=permissions, numDownloads=app['details']['appDetails']['numDownloads'], playRating="%.2f" % app['aggregateRating']['starRating'], url=app['shareUrl'], packageName=app['docid'])
+	appData = dict(
+		title=app['title'],
+		author=app['creator'],
+		description=app['descriptionHtml'],
+		cost=app['offer'][0]['formattedAmount'],
+		icon=app['image'][0]['imageUrl'],
+		category=str(app['details']['appDetails']['appCategory'][0]),
+		permissions=permissions,
+		numDownloads=app['details']['appDetails']['numDownloads'],
+		playRating="%.2f" % app['aggregateRating']['starRating'],
+		url=app['shareUrl'],
+		packageName=app['docid'] )
 
-	return dict(method="GetDetails", id=1, searchString=packageName, GooglePlayData=appData)
+	return dict(method="GetDetails", id=1, searchString=packageName, GooglePlayData=appData, response="ok")
 
 def GetAppPermissionsByCategory(category, subcategory, numResults=20):
 	api = GooglePlayAPI(ANDROID_ID)
 	api.login(GOOGLE_LOGIN, GOOGLE_PASSWORD, AUTH_TOKEN)
+	subcategory = subcategory.lower()
+	if subcategory == "paid":
+		subcategory = "apps_topselling_paid"
+	else:
+		subcategory = "apps_topselling_free"
 
 	try:
 		message = api.toDict(api.list(category, subcategory, str(numResults), None))
@@ -43,7 +58,7 @@ def GetAppPermissionsByCategory(category, subcategory, numResults=20):
 		return
 	
 	if "doc" not in message:
-		return dict(method="GetAppPermissionsByCategory", id=1, category=category, subcategory=subcategory, results=None)
+		return dict(method="GetAppPermissionsByCategory", id=1, category=category, subcategory=subcategory, results=None, response="ok")
 
 	doc = message["doc"][0]
 	appList = []
@@ -63,7 +78,7 @@ def GetAppPermissionsByCategory(category, subcategory, numResults=20):
 			for i in range(len(app['details']['appDetails']['permission'])): permissions.append(app['details']['appDetails']['permission'][i])
 		appList.append(dict(packageName=app["docid"], permissions=permissions))
 
-	return dict(method="GetAppPermissionsByCategory", id=1, category=category, subcategory=subcategory, results=appList)
+	return dict(method="GetAppPermissionsByCategory", id=1, category=category, subcategory=subcategory, results=appList, response="ok")
 
 def SearchApp(searchString):
 	api = GooglePlayAPI(ANDROID_ID)
@@ -76,7 +91,7 @@ def SearchApp(searchString):
 		return
 
 	if "doc" not in message:
-		return dict(method="SearchApp", id=1, searchString=searchString, results=None)
+		return dict(method="SearchApp", id=1, searchString=searchString, results=None, response="ok")
 
 	doc = message["doc"][0]
 	appList = []
@@ -87,7 +102,7 @@ def SearchApp(searchString):
 			badge = False
 		appList.append(dict(title=c["title"], author=c["creator"], superDeveloper=badge, playRating="%.2f" % c["aggregateRating"]["starRating"], icon=c["image"][0]["imageUrl"], packageName=c["docid"]))
 
-	return dict(method="SearchApp", id=1, searchString=searchString, results=appList)
+	return dict(method="SearchApp", id=1, searchString=searchString, results=appList, response="ok")
 
 def api(json=None):
 	if json is None or json == "":
