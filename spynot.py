@@ -35,10 +35,14 @@ def GetDetails(packageName):
 		icon=app['image'][0]['imageUrl'],
 		category=str(app['details']['appDetails']['appCategory'][0]),
 		permissions=permissions,
-		numDownloads=app['details']['appDetails']['numDownloads'],
+		#numDownloads=app['details']['appDetails']['numDownloads'],
 		playRating="%.2f" % app['aggregateRating']['starRating'],
 		url=app['shareUrl'],
 		packageName=app['docid'] )
+	if 'numDownloads' in app['details']['appDetails']:
+		appData['numDownloads'] = app['details']['appDetails']['numDownloads']
+	else:
+		appData['numDownloads'] = "~0"
 
 	return dict(method="GetDetails", id=1, searchString=packageName, GooglePlayData=appData, response="ok")
 
